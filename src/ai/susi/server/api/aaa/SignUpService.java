@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.UUID;
 
 public class SignUpService extends AbstractAPIHandler implements APIHandler {
 
@@ -183,11 +184,13 @@ public class SignUpService extends AbstractAPIHandler implements APIHandler {
 		}
 
 		// create new id
-		ClientIdentity identity = new ClientIdentity(ClientIdentity.Type.email, credential.getName());
+		String uniqueID = UUID.randomUUID().toString().replace("-", "");
+		ClientIdentity identity = new ClientIdentity(ClientIdentity.Type.id, uniqueID);
 		authentication.setIdentity(identity);
 
 		// set authentication details
 		String salt = createRandomString(20);
+		authentication.put("email",credential.getName());
 		authentication.put("salt", salt);
 		authentication.put("passwordHash", getHash(password, salt));
 		authentication.put("activated", activated);

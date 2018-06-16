@@ -214,6 +214,7 @@ public class LoginService extends AbstractAPIHandler implements APIHandler {
 
 					result.put("access_token", token);
 					result.put("accepted", true);
+					result.put("id",identity.getName());
 
 					break;
 
@@ -226,8 +227,8 @@ public class LoginService extends AbstractAPIHandler implements APIHandler {
 			}
 
 			DAO.log("login for user: " + identity.getName() + " via passwd from host: " + post.getClientHost());
-
-			result.put("message", "You are logged in as " + identity.getName());
+			
+			result.put("message", "You are logged in as " + authentication.getString("email"));
 			result.put("accepted", true);
 
 			// store the IP of last login in accounting object
