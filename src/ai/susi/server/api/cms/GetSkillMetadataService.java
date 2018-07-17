@@ -24,6 +24,8 @@ import ai.susi.json.JsonObjectWithDefault;
 import ai.susi.mind.SusiSkill;
 import ai.susi.server.*;
 import org.json.JSONObject;
+import ai.susi.json.JsonTray;
+import org.json.JSONArray;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -58,22 +60,36 @@ public class GetSkillMetadataService extends AbstractAPIHandler implements APIHa
         } catch (IOException e) {
             DAO.log(e.getMessage());
         }
-
+        JSONObject json = new JSONObject(true);
+        json.put("accepted", false);
         String model = call.get("model", "");
         String group = call.get("group", "");
         String language = call.get("language", "");
         String skillname = call.get("skill", "");
+        String privateSkill = call.get("private", null);
+        String userId = call.get("userid", "");
 
-        if (model.length() == 0 || group.length() == 0 ||language.length() == 0 || skillname.length() == 0 ) {
-            JSONObject json = new JSONObject(true);
-            json.put("accepted", false);
+        if ( (model.length() == 0 && privateSkill == null) || group.length() == 0 || language.length() == 0 || skillname.length() == 0 ) { 
             json.put("message", "Error: Bad parameter call");
             return new ServiceResponse(json);
         }
 
-        JSONObject skillMetadata = SusiSkill.getSkillMetadata(model, group, language, skillname);
-        
-        JSONObject json = new JSONObject(true);
+        JSONObject skillMetadata = new JSONObject(true);
+        if (privateSkill == null) {
+            skillMetadata = SusiSkill.getSkillMetadata(model, group, language, skillname);
+        }
+        else {
+            JsonTray chatbot = DAO.chatbot;
+            if (chatbot.has(userId)) {
+                JSONArray userChatBots = new JSONArray();
+                userChatBots = chatbot.getJSONObject(userId).getJSONArray("chatbots");
+                json.put("skill_meta",userChatBots);
+            }
+            else {
+                json.put("message", "Error: The user doesn't have any bots");
+            }
+        }
+
         json.put("skill_metadata", skillMetadata);
         json.put("accepted", true);
         json.put("message", "Success: Fetched Skill's Metadata");
